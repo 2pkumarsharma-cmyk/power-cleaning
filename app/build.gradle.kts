@@ -75,6 +75,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("com.google.android.material:material:1.12.0")
 }
 
 tasks.named("preBuild").configure { dependsOn(prepareUpstream) }
