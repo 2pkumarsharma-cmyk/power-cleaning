@@ -29,13 +29,13 @@ class StrongCleanActivity : ComponentActivity() {
             setPadding(32, 40, 32, 32)
         }
         val title = TextView(this).apply {
-            text = "EPSON L3210\nStrong Cleaning"
+            text = "EPSON L3210\nPower Cleaning"
             textSize = 24f
             setPadding(0, 0, 0, 24)
         }
         status = TextView(this).apply { text = "Connect Epson L3210 by USB OTG"; textSize = 16f }
         connect = Button(this).apply { text = "CONNECT" }
-        strong = Button(this).apply { text = "STRONG CLEANING"; isEnabled = false }
+        strong = Button(this).apply { text = "POWER CLEANING"; isEnabled = false }
         nozzle = Button(this).apply { text = "NOZZLE CHECK"; isEnabled = false }
 
         box.addView(title); box.addView(status)
@@ -73,9 +73,8 @@ class StrongCleanActivity : ComponentActivity() {
                 val c = withContext(Dispatchers.IO) { service.connectPrinter(device) }
                 connection = c
                 status.text = "Connected: ${c.spec.modelName}"
-                strong.isEnabled = c.spec.cleaningOptions.any { it.name == "Strong % Cleaning" }
+                strong.isEnabled = true
                 nozzle.isEnabled = true
-                if (!strong.isEnabled) status.text = "Connected, but Strong % Cleaning is not listed"
             } catch (e: Exception) {
                 status.text = "Connection error: ${e.message}"
             }
@@ -84,9 +83,9 @@ class StrongCleanActivity : ComponentActivity() {
 
     private fun confirmStrongCleaning() {
         AlertDialog.Builder(this)
-            .setTitle("Strong Cleaning")
+            .setTitle("Power Cleaning")
             .setMessage(
-                "This sends the L3200/L3210 'Strong % Cleaning' service command. " +
+                "This sends an Epson power head-cleaning job (all nozzles). " +
                 "It may consume significant ink. Make sure all tanks are at least 1/3 full. Continue?"
             )
             .setNegativeButton("CANCEL", null)
@@ -98,15 +97,15 @@ class StrongCleanActivity : ComponentActivity() {
         val c = connection ?: return
         strong.isEnabled = false
         nozzle.isEnabled = false
-        status.text = "Sending Strong Cleaning..."
+        status.text = "Sending Power Cleaning..."
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    service.runHeadCleaning(c, "Strong % Cleaning")
+                    service.runPrintJobHeadCleaning(c, 0, true, false)
                 }
-                status.text = "Command sent. Wait for printer to finish, then print a nozzle check."
+                status.text = "Job sent. Wait for the printer to finish (it may take a few minutes), then print a nozzle check."
             } catch (e: Exception) {
-                status.text = "Strong Cleaning error: ${e.message}"
+                status.text = "Power Cleaning error: ${e.message}"
             } finally {
                 strong.isEnabled = true
                 nozzle.isEnabled = true
